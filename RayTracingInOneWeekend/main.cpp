@@ -7,8 +7,23 @@
 
 #include <iostream>
 
+bool HitSphere(const Point3& centre, double radius, const Ray& ray)
+{
+    Vec3 originCentre = ray.Origin() - centre;
+    auto a = Dot(ray.Direction(), ray.Direction());
+    auto b = 2.f * Dot(originCentre, ray.Direction());
+    auto c = Dot(originCentre, originCentre) - radius * radius;
+    auto discriminant = b * b - 4 * a * c;
+
+    return (discriminant > 0);
+}
+
 Colour RayColour(const Ray& ray)
 {
+    if (HitSphere(Point3(0, 0, -1), 0.5, ray))
+    {
+        return Colour(1, 0, 0);
+    }
     Vec3 unitDirection = UnitVector(ray.Direction());
     auto t = 0.5f * (unitDirection.y() + 1.f);
 
