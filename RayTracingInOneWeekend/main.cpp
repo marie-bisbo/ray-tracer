@@ -10,12 +10,12 @@
 double HitSphere(const Point3& centre, double radius, const Ray& ray)
 {
     Vec3 originCentre = ray.Origin() - centre;
-    auto a = Dot(ray.Direction(), ray.Direction());
-    auto b = 2.f * Dot(originCentre, ray.Direction());
-    auto c = Dot(originCentre, originCentre) - radius * radius;
-    auto discriminant = b * b - 4 * a * c;
+    auto a = ray.Direction().LengthSquared();
+    auto halfB = Dot(originCentre, ray.Direction());
+    auto c = originCentre.LengthSquared() - radius * radius;
+    auto discriminant = halfB * halfB - a * c;
 
-    return discriminant < 0.f ? -1.f : (-b - std::sqrt(discriminant)) / (2.f * a);
+    return discriminant < 0.f ? -1.f : (-halfB - std::sqrt(discriminant)) / a;
 }
 
 Colour RayColour(const Ray& ray)
