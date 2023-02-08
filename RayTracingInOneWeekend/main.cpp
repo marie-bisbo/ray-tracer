@@ -1,9 +1,12 @@
 // RayTracingInOneWeekend.cpp : This file contains the 'main' function. Program execution begins and ends there.
 //
 
+#include "common.h"
 #include "colour.h"
 #include "vec3.h"
 #include "ray.h"
+#include "hittable_list.h"
+#include "sphere.h"
 
 #include <iostream>
 
@@ -18,30 +21,34 @@ double HitSphere(const Point3& centre, double radius, const Ray& ray)
     return discriminant < 0.f ? -1.f : (-halfB - std::sqrt(discriminant)) / a;
 }
 
-Colour RayColour(const Ray& ray)
+Colour RayColour(const Ray& ray, const Hittable& world)
 {
-    auto t = HitSphere(Point3(0, 0, -1), 0.5f, ray);
-    if (t > 0.f)
+    HitRecord hitRecord;
+    if (world.Hit(ray, 0, infinity, hitRecord))
     {
-        Vec3 normal = UnitVector(ray.At(t) - Vec3(0, 0, -1));
-        return 0.5f * Colour(normal.x() + 1, normal.y() + 1, normal.z() + 1);
+        return 0.5f * (hitRecord.normal + Colour(1, 1, 1));
     }
 
     Vec3 unitDirection = UnitVector(ray.Direction());
-    t = 0.5f * (unitDirection.y() + 1.f);
+    auto t = 0.5f * (unitDirection.y() + 1.f);
 
     return (1.f - t) * Colour(1.f, 1.f, 1.f) + t * Colour(0.5f, 0.7f, 1.f);
 }
 
 int main()
 {
-    //Image
+    // Image
 
     const auto aspectRatio = 16.f / 9.f;
     const int imageWidth = 400;
     const int imageHeight = static_cast<int>(imageWidth / aspectRatio);
 
-    //Camera
+    // World
+    HittableList worldObjects;
+    worldObjects.Add(std::make_shared<Sphere>(Point3(0, 0, -1), 0.5f));
+    worldObjects.Add(std::make_shared<Sphere>(Point3(0, -100.5, -1), 100));
+
+    // Camera
 
     auto viewportHeight = 2.f;
     auto viewportWidth = aspectRatio * viewportHeight;
@@ -52,7 +59,7 @@ int main()
     auto vertical = Vec3(0, viewportHeight, 0);
     auto lowerLeftCorner = origin - horizontal / 2 - vertical / 2 - Vec3(0, 0, focalLength);
 
-    //Render 
+    // Render 
 
     std::cout << "P3\n" << imageWidth << ' ' << imageHeight << "\n255\n";
 
@@ -64,7 +71,7 @@ int main()
             auto u = double(i) / (imageWidth - 1);
             auto v = double(j) / (imageHeight - 1);
             Ray ray(origin, lowerLeftCorner + u * horizontal + v * vertical - origin);
-            Colour pixelColour = RayColour(ray);
+            Colour pixelColour = RayColour(ray, worldObjects);
 
             WriteColour(std::cout, pixelColour);
         }
