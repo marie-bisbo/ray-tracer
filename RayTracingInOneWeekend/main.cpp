@@ -7,6 +7,7 @@
 #include "ray.h"
 #include "hittable_list.h"
 #include "sphere.h"
+#include "camera.h"
 
 #include <iostream>
 
@@ -42,6 +43,7 @@ int main()
     const auto aspectRatio = 16.f / 9.f;
     const int imageWidth = 400;
     const int imageHeight = static_cast<int>(imageWidth / aspectRatio);
+    const int samplesPerPixel = 100;
 
     // World
     HittableList worldObjects;
@@ -50,14 +52,7 @@ int main()
 
     // Camera
 
-    auto viewportHeight = 2.f;
-    auto viewportWidth = aspectRatio * viewportHeight;
-    auto focalLength = 1.f;
-
-    auto origin = Point3(0, 0, 0);
-    auto horizontal = Vec3(viewportWidth, 0, 0);
-    auto vertical = Vec3(0, viewportHeight, 0);
-    auto lowerLeftCorner = origin - horizontal / 2 - vertical / 2 - Vec3(0, 0, focalLength);
+    Camera camera;
 
     // Render 
 
@@ -68,12 +63,16 @@ int main()
         std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
         for (int i = 0; i < imageWidth; ++i)
         {
-            auto u = double(i) / (imageWidth - 1);
-            auto v = double(j) / (imageHeight - 1);
-            Ray ray(origin, lowerLeftCorner + u * horizontal + v * vertical - origin);
-            Colour pixelColour = RayColour(ray, worldObjects);
+            Colour pixelColour(0, 0, 0);
+            for (int s = 0; s < samplesPerPixel; ++s)
+            {
+				auto u = (i + GenerateRandomDoubleNormalised()) / (imageWidth - 1);
+				auto v = (j + GenerateRandomDoubleNormalised()) / (imageHeight - 1);
+                Ray ray = camera.GetRay(u, v);
+                pixelColour += RayColour(ray, worldObjects);
+            }
 
-            WriteColour(std::cout, pixelColour);
+            WriteColour(std::cout, pixelColour, samplesPerPixel);
         }
     }
 
