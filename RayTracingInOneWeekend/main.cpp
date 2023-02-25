@@ -27,7 +27,8 @@ Colour RayColour(const Ray& ray, const Hittable& world)
     HitRecord hitRecord;
     if (world.Hit(ray, 0, infinity, hitRecord))
     {
-        return 0.5f * (hitRecord.normal + Colour(1, 1, 1));
+        Point3 target = hitRecord.point + hitRecord.normal + RandomPointInUnitSphere();
+        return 0.5f * RayColour(Ray(hitRecord.point, target - hitRecord.point), world);
     }
 
     Vec3 unitDirection = UnitVector(ray.Direction());

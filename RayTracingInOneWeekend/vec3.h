@@ -3,6 +3,8 @@
 #include <cmath>
 #include <iostream>
 
+#include "common.h"
+
 class Vec3 {
 public:
 	Vec3() : vec{ 0, 0, 0 } {}
@@ -45,6 +47,16 @@ public:
 	double LengthSquared() const
 	{
 		return vec[0] * vec[0] + vec[1] * vec[1] + vec[2] * vec[2];
+	}
+
+	inline static Vec3 Random()
+	{
+		return Vec3(GenerateRandomDoubleNormalised(), GenerateRandomDoubleNormalised(), GenerateRandomDoubleNormalised());
+	}
+
+	inline static Vec3 Random(const double min, const double max)
+	{
+		return Vec3(GenerateRandomDouble(min, max), GenerateRandomDouble(min, max), GenerateRandomDouble(min, max));
 	}
 
 public:
@@ -108,3 +120,16 @@ inline Vec3 UnitVector(const Vec3 v)
 	return v / v.Length();
 }
 
+Vec3 RandomPointInUnitSphere()
+{
+	while (true)
+	{
+		auto point = Vec3::Random(-1, 1);
+		if (point.LengthSquared() >= 1)
+		{
+			continue;
+		}
+
+		return point;
+	}
+}
