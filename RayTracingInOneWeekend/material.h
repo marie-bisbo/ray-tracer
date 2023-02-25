@@ -87,14 +87,37 @@ public:
 		double refractionRatio = hitRecord.frontFace ? (1.0 / m_IndexOfRefraction) : m_IndexOfRefraction;
 
 		Vec3 unitDirection = UnitVector(rayIn.Direction());
-		Vec3 refracted = Refract(unitDirection, hitRecord.normal, refractionRatio);
+		double cosTheta = fmin(Dot(-unitDirection, hitRecord.normal), 1.0);
+		double sinTheta = std::sqrt(1.0 - cosTheta * cosTheta);
 
-		scattered = Ray(hitRecord.point, refracted);
+		bool cannotRefract = refractionRatio * sinTheta > 1.0;
+
+		Vec3 direction;
+		if (cannotRefract || CalculateReflectance(cosTheta, refractionRatio) > GenerateRandomDoubleNormalised())
+		{
+			direction = Reflect(unitDirection, hitRecord.normal);
+		}
+		else
+		{
+			direction = Refract(unitDirection, hitRecord.normal, refractionRatio);
+		}
+
+		scattered = Ray(hitRecord.point, direction);
 
 		return true;
 	}
 
 public:
 	double m_IndexOfRefraction;
+
+private:
+	static double CalculateReflectance(double cosine, double refractionIndex)
+	{
+		// Schlick's approximation for reflectance
+		auto rZero = (1 - refractionIndex) / (1 + refractionIndex);
+		rZero = rZero * rZero;
+
+		return rZero + (1 - rZero) * pow((1 - cosine), 5);
+	}
 };
 
