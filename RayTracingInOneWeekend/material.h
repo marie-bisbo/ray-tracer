@@ -48,8 +48,8 @@ public:
 class Metal : public Material
 {
 public:
-	Metal(const Colour& albedo)
-		: m_Albedo(albedo) {}
+	Metal(const Colour& albedo, double fuzziness)
+		: m_Albedo(albedo), m_Fuziness(fuzziness) {}
 
 	virtual bool Scatter(
 		const Ray& rayIn,
@@ -60,12 +60,13 @@ public:
 	{
 		Vec3 reflected = Reflect(UnitVector(rayIn.Direction()), hitRecord.normal);
 		attenuation = m_Albedo;
-		scattered = Ray(hitRecord.point, reflected);
+		scattered = Ray(hitRecord.point, reflected + m_Fuziness * RandomPointInUnitSphere());
 
 		return Dot(scattered.Direction(), hitRecord.normal) > 0;
 	}
 
 public:
 	Colour m_Albedo;
+	double m_Fuziness;
 };
 
