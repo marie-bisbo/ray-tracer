@@ -59,6 +59,12 @@ public:
 		return Vec3(GenerateRandomDouble(min, max), GenerateRandomDouble(min, max), GenerateRandomDouble(min, max));
 	}
 
+	bool NearlyZero() const
+	{
+		const auto tolerance = 1e-8;
+		return (fabs(vec[0]) < tolerance) && (fabs(vec[1]) < tolerance) && (fabs(vec[2]) < tolerance);
+	}
+
 public:
 	double vec[3];
 };
@@ -132,4 +138,14 @@ Vec3 RandomPointInUnitSphere()
 
 		return point;
 	}
+}
+
+Vec3 RandomUnitVector()
+{
+	return UnitVector(RandomPointInUnitSphere());
+}
+
+Vec3 Reflect(const Vec3& vector, const Vec3& normal)
+{
+	return vector - 2 * Dot(vector, normal) * normal;
 }

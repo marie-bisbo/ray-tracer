@@ -22,13 +22,25 @@ double HitSphere(const Point3& centre, double radius, const Ray& ray)
     return discriminant < 0.f ? -1.f : (-halfB - std::sqrt(discriminant)) / a;
 }
 
-Colour RayColour(const Ray& ray, const Hittable& world)
+Colour RayColour(const Ray& ray, const Hittable& world, int recursionDepth)
 {
     HitRecord hitRecord;
-    if (world.Hit(ray, 0, infinity, hitRecord))
+
+    if (recursionDepth <= 0)
     {
-        Point3 target = hitRecord.point + hitRecord.normal + RandomPointInUnitSphere();
-        return 0.5f * RayColour(Ray(hitRecord.point, target - hitRecord.point), world);
+        return Colour(0, 0, 0);
+    }
+
+    if (world.Hit(ray, 0.001, infinity, hitRecord))
+    {
+        Colour attenuation;
+        Ray scattered;
+        if (hitRecord.materialPtr->Scatter(ray, hitRecord, attenuation, scattered))
+        {
+            return attenuation * RayColour(scattered, world, recursionDepth - 1);
+        }
+
+        return Colour(0, 0, 0);
     }
 
     Vec3 unitDirection = UnitVector(ray.Direction());
@@ -45,11 +57,20 @@ int main()
     const int imageWidth = 400;
     const int imageHeight = static_cast<int>(imageWidth / aspectRatio);
     const int samplesPerPixel = 100;
+    const int maxRecursionDepth = 50;
 
     // World
     HittableList worldObjects;
-    worldObjects.Add(std::make_shared<Sphere>(Point3(0, 0, -1), 0.5f));
-    worldObjects.Add(std::make_shared<Sphere>(Point3(0, -100.5, -1), 100));
+
+    auto materialGround = std::make_shared<Lambertian>(Colour(0.8, 0.8, 0.0));
+    auto materialCentre = std::make_shared<Lambertian>(Colour(0.7, 0.3, 0.3));
+    auto materialLeft = std::make_shared<Metal>(Colour(0.8, 0.8, 0.8));
+    auto materialRight = std::make_shared<Metal>(Colour(0.8, 0.6, 0.2));
+
+    worldObjects.Add(std::make_shared<Sphere>(Point3(0.0, -100.5, -1.0), 100.0, materialGround));
+    worldObjects.Add(std::make_shared<Sphere>(Point3(0.0, 0.0, -1.0), 0.5, materialCentre));
+    worldObjects.Add(std::make_shared<Sphere>(Point3(-1.0, 0.0, -1.0), 0.5, materialLeft));
+    worldObjects.Add(std::make_shared<Sphere>(Point3(1.0, 0.0, -1.0), 0.5, materialRight));
 
     // Camera
 
@@ -70,7 +91,7 @@ int main()
 				auto u = (i + GenerateRandomDoubleNormalised()) / (imageWidth - 1);
 				auto v = (j + GenerateRandomDoubleNormalised()) / (imageHeight - 1);
                 Ray ray = camera.GetRay(u, v);
-                pixelColour += RayColour(ray, worldObjects);
+                pixelColour += RayColour(ray, worldObjects, maxRecursionDepth);
             }
 
             WriteColour(std::cout, pixelColour, samplesPerPixel);
