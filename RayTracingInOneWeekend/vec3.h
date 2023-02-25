@@ -149,3 +149,12 @@ Vec3 Reflect(const Vec3& vector, const Vec3& normal)
 {
 	return vector - 2 * Dot(vector, normal) * normal;
 }
+
+Vec3 Refract(const Vec3& uv, const Vec3 normal, double etaOverEtaPrime)
+{
+	auto cosTheta = fmin(Dot(-uv, normal), 1.0);
+	Vec3 rayOutPerpendicular = etaOverEtaPrime * (uv + cosTheta * normal);
+	Vec3 rayOutParallel = -std::sqrt(fabs(1.0 - rayOutPerpendicular.LengthSquared())) * normal;
+
+	return rayOutPerpendicular + rayOutParallel;
+}
