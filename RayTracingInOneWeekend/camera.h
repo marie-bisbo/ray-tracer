@@ -6,27 +6,45 @@
 class Camera
 {
 public:
-	Camera()
+	Camera(
+		Point3 lookFrom,
+		Point3 lookAt,
+		Vec3 verticalUp,
+		double verticalFOV,
+		double aspectRatio,
+		double aperture,
+		double focusDistance)
 	{
-		auto aspectRatio = 16.f / 9.f;
-		auto viewportHeight = 2.f;
+		auto theta = DegreesToRadians(verticalFOV);
+		auto h = tan(theta / 2);
+		auto viewportHeight = 2.f * h;
 		auto viewportWidth = aspectRatio * viewportHeight;
-		auto focalLength = 1.f;
 
-		m_Origin = Point3(0, 0, 0);
-		m_Horizontal = Vec3(viewportWidth, 0.f, 0.f);
-		m_Vertical = Vec3(0.f, viewportHeight, 0.f);
-		m_LowerLeftCorner = m_Origin - m_Horizontal / 2 - m_Vertical / 2 - Vec3(0, 0, focalLength);
+		m_W = UnitVector(lookFrom - lookAt);
+		m_U = UnitVector(Cross(verticalUp, m_W));
+		m_V = Cross(m_W, m_U);
+
+		m_Origin = lookFrom;
+		m_Horizontal = focusDistance * viewportWidth * m_U;
+		m_Vertical = focusDistance * viewportHeight * m_V;
+		m_LowerLeftCorner = m_Origin - m_Horizontal / 2 - m_Vertical / 2 - focusDistance * m_W;
+
+		m_LensRadius = aperture / 2;
 	}
 
-	Ray GetRay(const double u, const double v) const
+	Ray GetRay(const double s, const double t) const
 	{
-		return Ray(m_Origin, m_LowerLeftCorner + u * m_Horizontal + v * m_Vertical - m_Origin);
+		Vec3 radiusDisk = m_LensRadius * RandomPointInUnitDisk();
+		Vec3 offset = m_U * radiusDisk.x() + m_V * radiusDisk.y();
+		
+		return Ray(m_Origin + offset, m_LowerLeftCorner + s * m_Horizontal + t * m_Vertical - m_Origin - offset);
 	}
 
 private:
 	Point3 m_Origin;
-	Point3 m_LowerLeftCorner;
 	Vec3 m_Horizontal;
 	Vec3 m_Vertical;
+	Point3 m_LowerLeftCorner;
+	Vec3 m_U, m_V, m_W;
+	double m_LensRadius;
 };

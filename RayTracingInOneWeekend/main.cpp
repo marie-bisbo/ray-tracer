@@ -62,19 +62,26 @@ int main()
     // World
     HittableList worldObjects;
 
-    auto materialGround = std::make_shared<Lambertian>(Colour(0.8, 0.8, 0.0));
-    auto materialCentre = std::make_shared<Lambertian>(Colour(0.1, 0.2, 0.5));
-    auto materialLeft = std::make_shared<Dielectric>(1.5);
-    auto materialRight = std::make_shared<Metal>(Colour(0.8, 0.6, 0.2), 0.0);
+    auto material_ground = std::make_shared<Lambertian>(Colour(0.8, 0.8, 0.0));
+    auto material_center = std::make_shared<Lambertian>(Colour(0.1, 0.2, 0.5));
+    auto material_left = std::make_shared<Dielectric>(1.5);
+    auto material_right = std::make_shared<Metal>(Colour(0.8, 0.6, 0.2), 0.0);
 
-    worldObjects.Add(std::make_shared<Sphere>(Point3(0.0, -100.5, -1.0), 100.0, materialGround));
-    worldObjects.Add(std::make_shared<Sphere>(Point3(0.0, 0.0, -1.0), 0.5, materialCentre));
-    worldObjects.Add(std::make_shared<Sphere>(Point3(-1.0, 0.0, -1.0), 0.5, materialLeft));
-    worldObjects.Add(std::make_shared<Sphere>(Point3(1.0, 0.0, -1.0), 0.5, materialRight));
+    worldObjects.Add(std::make_shared<Sphere>(Point3(0.0, -100.5, -1.0), 100.0, material_ground));
+    worldObjects.Add(std::make_shared<Sphere>(Point3(0.0, 0.0, -1.0), 0.5, material_center));
+    worldObjects.Add(std::make_shared<Sphere>(Point3(-1.0, 0.0, -1.0), 0.5, material_left));
+    worldObjects.Add(std::make_shared<Sphere>(Point3(-1.0, 0.0, -1.0), -0.45, material_left));
+    worldObjects.Add(std::make_shared<Sphere>(Point3(1.0, 0.0, -1.0), 0.5, material_right));
 
     // Camera
 
-    Camera camera;
+    Point3 lookFrom(3, 3, 2);
+    Point3 lookAt(0, 0, -1);
+    Vec3 verticalUp(0, 1, 0);
+    auto distanceToFocus = (lookFrom - lookAt).Length();
+    auto aperture = 2.0;
+
+    Camera camera(lookFrom, lookAt, verticalUp, 20, aspectRatio, aperture, distanceToFocus);
 
     // Render 
 

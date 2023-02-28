@@ -158,3 +158,17 @@ Vec3 Refract(const Vec3& uv, const Vec3 normal, double etaOverEtaPrime)
 
 	return rayOutPerpendicular + rayOutParallel;
 }
+
+Vec3 RandomPointInUnitDisk()
+{
+	while (true)
+	{
+		auto point = Vec3(GenerateRandomDouble(-1, 1), GenerateRandomDouble(-1, 1), 0);
+		if (point.LengthSquared() >= 1)
+		{
+			continue;
+		}
+
+		return point;
+	}
+}
